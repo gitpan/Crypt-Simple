@@ -1,5 +1,5 @@
 package Crypt::Simple;
-$Crypt::Simple::VERSION = '0.04';
+$Crypt::Simple::VERSION = '0.06';
 
 =head1 NAME
 
@@ -42,9 +42,14 @@ The MD5 hash of the text string "pass phrase" is used as the key.
 The user is prompted to enter a passphrase, and the MD5 hash of the entered text
 is used as the key.
 
+=item use Crypt::Simple passfile => '/home/marty/secret';
+
+The contents of the file /home/marty/secret are used as the pass phrase: the MD5
+hash of the file is used as the key.
+
 =item use Crypt::Simple file => '/home/marty/noise';
 
-The contents of the file /home/marty/noise are used as the key.
+The contents of the file /home/marty/noise are directly used as the key.
 
 =back
 
@@ -146,6 +151,7 @@ sub import {
 
 sub get_key_param {
 	my ($class, @p) = @_;
+	return md5($p[0]) if @p == 1;
 	my %p = @p;
 	my $key = '';
 	foreach my $k ($class->get_key_methods) {
@@ -163,20 +169,38 @@ sub get_key_default {
 	return md5("$class,$c");
 }
 
-sub get_key_methods { qw{passphrase file prompt} }
+sub get_key_methods { qw{passphrase passfile file prompt} }
 
 sub key_from_passphrase {
 	my ($class, $pass) = @_;
 	return md5($pass);
 }
 
+sub read_file_contents {
+	my ($class, $file) = @_;
+	open my $io, $file or croak "cannot open $file: $!";
+	local $/;
+	my $data = <$io>;
+	close $io;
+	return $data;
+}
+
+sub key_from_passfile {
+	my ($class, $file) = @_;
+	my $pass = $class->read_file_contents($file);
+	return $class->key_from_passphrase($pass);
+}
+
 sub key_from_file {
 	my ($class, $file) = @_;
+	return $class->read_file_contents($file);
 }
 
 sub key_from_prompt {
 	my ($class, $prompt) = @_;
-	my $pass = "foo"; # read from prompt
+	print STDERR "$prompt: ";
+	my $pass = <STDIN>;
+	chomp $pass;
 	return $class->key_from_passphrase($pass);
 }
 
