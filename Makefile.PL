@@ -7,5 +7,6 @@ WriteMakefile(
                          'Compress::Zlib' => 1.11,
                          'MIME::Base64' => 2.11,
                          'Digest::MD5' => 2.13,
+                         'FreezeThaw' => 0.41,
                        },
 );

@@ -1,5 +1,7 @@
 Simple.pm
 MANIFEST
 Makefile.PL
-test.pl
 README
+t/single.t
+t/multi.t
+t/complex.t
